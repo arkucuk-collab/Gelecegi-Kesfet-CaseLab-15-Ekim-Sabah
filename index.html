@@ -97,8 +97,11 @@ section.blok{background:var(--surface);border:1px solid var(--line);border-radiu
 .pano-head .hint{font-size:12px;color:var(--muted)}
 .pano-head .tools{margin-left:auto;display:flex;gap:6px}
 .notes{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
-.note{background:var(--note);color:var(--note-ink);border-radius:4px;min-height:92px;padding:10px 12px;font-size:14px;box-shadow:0 2px 0 rgba(0,0,0,.08);position:relative;outline:none;white-space:pre-wrap;word-wrap:break-word}
-.note:empty::before{content:attr(data-ph);color:var(--note-ink);opacity:.5}
+.note{background:var(--note);color:var(--note-ink);border-radius:4px;font-size:14px;box-shadow:0 2px 0 rgba(0,0,0,.08);position:relative}
+.note .nt{min-height:92px;padding:10px 24px 10px 12px;outline:none;white-space:pre-wrap;word-wrap:break-word;cursor:text}
+.note .nt:focus-visible{outline:none}
+.note:focus-within{outline:2px solid var(--teal);outline-offset:2px}
+.note .nt:empty::before{content:attr(data-ph);color:var(--note-ink);opacity:.5}
 .note .x{position:absolute;top:2px;right:6px;border:0;background:transparent;color:inherit;opacity:.45;cursor:pointer;font-size:14px}
 .note .x:hover{opacity:1}
 .cols{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
@@ -150,6 +153,19 @@ body.facmode .fac{display:block}
 .mech .d4pill{margin-left:6px;margin-right:0}
 .faconly{display:none} body.facmode .faconly{display:block}
 .bak{font-size:12px;font-weight:700;color:var(--tealdk);margin:-4px 0 8px}
+.col.kbox{background:var(--surface2);border-radius:10px;padding:12px}
+.col.kbox.own{background:color-mix(in srgb,var(--teal) 16%,var(--surface))}
+.col.kbox .sub{min-height:90px}
+@media (max-width:700px){ .col.kbox .sub{min-height:0} }
+.opts{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:6px}
+.opts li{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:700;margin:0}
+.opts li b{flex:none;width:24px;height:24px;border-radius:50%;background:var(--navy);color:var(--surface);display:grid;place-items:center;font-size:12px}
+.opts li span{font-weight:400;font-size:12px;color:var(--muted)}
+.fwd{font-size:12px;color:var(--muted);margin:-4px 0 8px}
+.bridge{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin:0 0 14px}
+.bridge>div{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;min-width:0}
+.bridge small{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.bridge b{display:block;color:var(--tealdk);margin-top:4px}
 .card ol{margin:8px 0 0;padding-left:24px}
 .card ol li::marker{font-weight:700;color:var(--tealdk)}
 .facpw{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px}
@@ -185,7 +201,15 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
   .matrix{grid-template-columns:70px 1fr 1fr}
   .blok header .time{margin-left:0;text-align:left}
 }
-@media (prefers-reduced-motion:no-preference){ .note{transition:transform .12s} .note:focus{transform:scale(1.02)} }
+@media (prefers-reduced-motion:no-preference){ .note{transition:transform .12s} .note:focus-within{transform:scale(1.02)} }
+/* Canlı paylaşım göstergesi */
+.syncpill{display:none;font-size:12px;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:4px 10px;white-space:nowrap}
+body.livesync .syncpill{display:inline-block}
+.syncpill::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:6px;vertical-align:1px}
+.syncpill.ok{color:var(--fg)} .syncpill.ok::before{background:var(--tealdk)}
+.syncpill.wait::before{background:var(--blue)}
+.syncpill.off{border-color:var(--fac-line);background:var(--fac);color:var(--fac-ink);white-space:normal} .syncpill.off::before{background:var(--fac-line)}
+body.livesync:not(.facmode) #clearBtn{display:none}
 </style>
 
 </head>
@@ -202,6 +226,7 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
     <nav>
       <a href="#akis">Akış</a><a href="#d4">4D</a><a href="#b0">Açılış</a><a href="#b1">Tur 1</a><a href="#b2">Tur 2</a><a href="#b3">Tur 3</a><a href="#b4">Tur 4</a><a href="#b5">Galeri</a><a href="#b6">Kapanış</a><a href="#rehber">Vaka Rehberi</a>
     </nav>
+    <span class="syncpill" id="syncPill" role="status" aria-live="polite"></span>
     <button class="btn" id="facBtn" type="button" aria-pressed="false">Kolaylaştırıcı modu</button>
     <form class="facpw" id="facPw" hidden>
       <label for="facPwIn">Kolaylaştırıcı şifresi</label>
@@ -225,7 +250,7 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
       <div><b>150'</b><span>4 tur · 1 ara · galeri · kapanış</span></div>
       <div><b>3 grup</b><span>1 Güvenli Yayılım · 2 Ateşleme ve Kültür · 3 Uzman Doğrular ve Sınır</span></div>
       <div><b>5 rol</b><span>Moderatör · Zaman tutucu · Yazıcı · Şüpheci · Sunucu</span></div>
-      <div><b>Çıktı</b><span>Grup başına bir Hazırlık Planı ve İşletim Komitesi'ne 3 dakikalık öneri</span></div>
+      <div><b>Çıktı</b><span>Grup başına bir Karar Kanvası ve İşletim Komitesi'ne 3 dakikalık öneri</span></div>
     </div>
   </div>
 
@@ -243,7 +268,7 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
         <span class="tag">Grup 1 · Oda 1</span>
         <h3>Güvenli Yayılım</h3>
         <p class="muted" style="margin:0">Mercek: kontrol ve risk. Engelle → güvenli aç, risk katmanı, "kayıt dışı model yok".</p>
-        <ul><li>Tur 1 Kontrol Kartı</li><li>Tur 2 Mercek Kartı: kontrol</li><li>Tur 3 Hazırlık Planı (ortak kart)</li></ul>
+        <ul><li>Tur 1 Kontrol Kartı</li><li>Tur 2 Mercek Kartı: kontrol</li><li>Tur 3 Karar Kanvası (üç grupta aynı)</li></ul>
         <div class="d4line"><span class="d4pill">4D · ana D</span><b>Özen göster (Diligence)</b><br>Banka özeni kişiye mi bırakıyor, sisteme mi gömüyor? Hangi kontrol en kolay delinir?</div>
         <div class="pages">Vaka s. 3–4, 9–10 · Rehber 5.1–5.2, 6.3</div>
       </div>
@@ -251,7 +276,7 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
         <span class="tag">Grup 2 · Oda 2</span>
         <h3>Ateşleme ve Kültür</h3>
         <p class="muted" style="margin:0">Mercek: yayılım. Herkese erişim, AI Days, Shark Tank, süper kullanıcı, S-eğrisi.</p>
-        <ul><li>Tur 1 Yayılım Kartı</li><li>Tur 2 Mercek Kartı: yayılım</li><li>Tur 3 Hazırlık Planı (ortak kart)</li></ul>
+        <ul><li>Tur 1 Yayılım Kartı</li><li>Tur 2 Mercek Kartı: yayılım</li><li>Tur 3 Karar Kanvası (üç grupta aynı)</li></ul>
         <div class="d4line"><span class="d4pill">4D · ana D</span><b>Tarif et (Description)</b><br>İyi tarif etme becerisi 200.000 kişiye nasıl yayıldı? Yavaş benimseyenlerde eksik olan ne?</div>
         <div class="pages">Vaka s. 5–7, 10 · Rehber 5.3–5.4, 6.3</div>
       </div>
@@ -259,7 +284,7 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
         <span class="tag">Grup 3 · Oda 3</span>
         <h3>Uzman Doğrular ve Sınır</h3>
         <p class="muted" style="margin:0">Mercek: doğrulama ve karar. PlanningGPT %50→%90, Coach testi, kaynak gösterimi, müşteriye açma.</p>
-        <ul><li>Tur 1 Doğrulama Kartı</li><li>Tur 2 Mercek Kartı: doğrulama</li><li>Tur 3 Hazırlık Planı (ortak kart)</li></ul>
+        <ul><li>Tur 1 Doğrulama Kartı</li><li>Tur 2 Mercek Kartı: doğrulama</li><li>Tur 3 Karar Kanvası (üç grupta aynı)</li></ul>
         <div class="d4line"><span class="d4pill">4D · ana D</span><b>Ayırt et (Discernment)</b><br>Yanıtın doğruluğunu kim, neyle ayırt ediyor? Müşteri aynı ayırt etmeyi yapabilir mi?</div>
         <div class="pages">Vaka s. 10–15 · Rehber 7–9</div>
       </div>
@@ -274,7 +299,7 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
         <div><span class="who"><span class="d4pill">Grup 3</span></span><b>Ayırt et</b> <span class="muted">(Discernment)</span><br><span class="muted">Çıktının doğruluğunu neyle değerlendiririm?</span></div>
         <div><span class="who"><span class="d4pill">Ortak · Tur 4 + kapanış</span></span><b>Devret</b> <span class="muted">(Delegation)</span><br><span class="muted">Hangi işi YZ'ye veririm, hangisi bende kalır?</span></div>
       </div>
-      <p class="muted" style="margin:0;max-width:86ch">Tur 1'de D'nizin özetteki kanıtını bulursunuz. Tur 2'de kartınızın ilk sorusu D'nizin sorusudur. Tur 3'te "hazırız" ölçütünü D'nizden yazarsınız. Tur 4'te ve kapanışta üç grup ortak D'de buluşur: Devret.</p>
+      <p class="muted" style="margin:0;max-width:86ch">Tur 1'de D'nizin özetteki kanıtını bulursunuz. Tur 2'de kartınızın ilk sorusu D'nizin sorusudur. Tur 3'te üç grup aynı Karar Kanvası'nı doldurur. Tur 4'te ve kapanışta üç grup ortak D'de buluşur: Devret.</p>
     </div>
 
     <div class="grid2" style="margin-top:18px">
@@ -322,7 +347,7 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
     </div>
     <div class="card"><b>Tek fark:</b> yüksek performanslıların %74'ü iş akışını YZ ile baştan tasarlamış; diğerlerinde %25.</div>
     <div class="band"><small>Herkese soru · 3' · sohbet kutusu</small>Bir banka 200.000 çalışanına aynı YZ aracını verdi; yarısı günde birkaç kez kullanıyor. Aracı herkese vermek neden tek başına yetmez; bireysel kazanç bilançoya giden yolda nerede kayboluyor?</div>
-    <div class="pano" data-pano="p0">
+    <div class="pano" data-pano="p0" data-scope="ortak">
       <div class="pano-head"><h4>Öne çıkan cevaplar</h4><span class="hint">Herkes sohbet kutusuna tek cümle yazar: "…'da kayboluyor, çünkü …". Üçü buraya alınır.</span><div class="tools"><button class="btn add" type="button">+ Not</button><button class="btn copy" type="button">Kopyala</button></div></div>
       <div class="notes" data-min="3" data-ph="…'da kayboluyor, çünkü…"></div>
     </div>
@@ -465,18 +490,19 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
   <!-- 2 COACH KARARI -->
   <section class="blok" id="b2">
     <header>
-      <div><div class="num">TUR 2 · KEŞFET → DENE · BREAKOUT</div><h2>Coach kararı: üç mercek, üç soru</h2></div>
+      <div><div class="num">TUR 2 · KEŞFET → DENE · BREAKOUT</div><h2>Coach kararı · Mercek: müşteri okuyunca ne değişir?</h2></div>
       <div class="time"><b>25'</b><span data-slot="2"></span></div>
     </header>
-    <div class="aim">Vaka bir kararla bitiyor: Coach müşteriye açılsın mı? Her grup bu gerçek kararı kendi merceğinden geçirir. Gereken bilgi kartınızda hazır; vaka metnini açmanız gerekmez. Her sorunun altındaki "Bak" satırı dayanacağınız maddeyi gösterir; yargı sizin.</div>
+    <div class="aim">Vaka bir kararla bitiyor: Coach müşteriye açılsın mı? Bu kararı iki turda çalışıyoruz. Tur 2'de karar vermiyorsunuz; kararı kendi merceğinizden okuyup üç bulgu çıkarıyorsunuz. Tur 3'te üç grup aynı kanvasta yolu seçer ve ölçütleri yazar; buradaki notlarınız o kanvasın hammaddesidir. Gereken bilgi kartınızda hazır; her sorunun altındaki "Bak" satırı dayanacağınız maddeyi, ok satırı ise notun Tur 3'te nereye taşınacağını gösterir.</div>
     <div class="steps">
       <div><b>0–3'</b>Karar bağlamı (ana oda)</div>
-      <div><b>3–19'</b>Mercek Kartı: üç soru (breakout)</div>
-      <div><b>19–25'</b>Her grup tek bulgusunu söyler (ana oda)</div>
+      <div><b>3–19'</b>Mercek Kartı: üç bulgu (breakout)</div>
+      <div><b>19–25'</b>Her grup tek bulgusunu söyler; öteki iki merceği not edin (ana oda)</div>
     </div>
     <div class="card" style="margin-bottom:14px">
       <span class="tag">Bağlam · Mart 2025 · ortak</span>
       <p style="margin:8px 0 0">Coach, Ekim 2024'te 3.000 danışmana açıldı. Danışman soru sorar; Coach bankanın onaylı içeriğinden, kaynağını göstererek yanıt verir, görüşme notunu ve takip işlerini taslaklar. Yaklaşık 4.000 danışman 80.000 müşteriye hizmet veriyor. Müşteriler daha fazla öz-servis istiyor. Varlık ve Servet Yönetimi CEO'su soruyor: Coach'un bir sürümü müşteriye açılmalı mı; ne zaman, nasıl, hazır olduğumuzu nasıl anlarız? Yoksa önce danışman–müşteri görüşmesinde sesli GenAI mı? Veri ve Analitik Başkanı'na göre teknoloji henüz müşteri yüzlü kullanıma hazır değil.</p>
+      <p style="margin:8px 0 0"><b>Masadaki üç yol:</b> <b>A</b> müşteriye şimdi aç · <b>B</b> önce sesli ara adım · <b>C</b> henüz değil, şimdilik danışmanda kalsın. Yolu Tur 3'te seçeceksiniz.</p>
     </div>
 
     <div class="g" data-g="1">
@@ -484,11 +510,11 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
       <p class="muted" style="margin:0 0 10px">Banka içeride özeni sisteme gömdü. Coach müşteriye açılırsa bu düzen yeter mi?</p>
       <div class="card" style="margin-bottom:12px"><span class="tag">Vakadan · bilmeniz gereken</span><ol><li>Bugün danışman yanıtı müşteriden önce görüyor, düzeltebiliyor ve verdiği tavsiyeden sorumlu.</li><li>Müşteri yüzlü kullanım "yüksek riskli" sayılıyor ve bağımsız model incelemesinden geçmek zorunda. İç kullanımda sponsor, kontrol ekibi ve döngüdeki insan yetiyor.</li><li>Komutlar ve yanıtlar kayda giriyor; konu uzmanları yanıt örneklerini okuyor.</li><li>Coach bugün müşteri profilini, hesap verisini ve danışman–müşteri görüşme özetlerini kullanıyor.</li></ol></div>
       <div class="pano" data-pano="p2g1">
-        <div class="pano-head"><h4>Mercek Kartı</h4><span class="hint">Üç soru, her birine bir not. Bilgi yukarıda hazır; sizden istenen yargı.</span><div class="tools"><button class="btn add" type="button">+ Not</button><button class="btn copy" type="button">Kopyala</button></div></div>
+        <div class="pano-head"><h4>Mercek Kartı</h4><span class="hint">Üç soru, her birine bir not. Bilgi yukarıda hazır; sizden istenen yargı. Notlarınız Tur 3'te kanvasa taşınır.</span><div class="tools"><button class="btn add" type="button">+ Not</button><button class="btn copy" type="button">Kopyala</button></div></div>
         <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
-          <div class="col d4"><h5><span class="d4pill">4D</span>Özen</h5><div class="sub">Danışman aradan çıkınca kayıt ve kontrol nerede eksik kalır? Son sorumlu kim olur?</div><div class="bak">Bak: madde 1 ve 3</div><div class="notes" data-key="d4t2g1" data-min="1" data-ph="Eksik kalan…"></div></div>
-          <div class="col"><h5>Olmazsa olmaz</h5><div class="sub">Müşteriye açılmadan önce mutlaka yerinde olması gereken tek kontrol hangisi?</div><div class="bak">Bak: madde 2–3</div><div class="notes" data-min="1" data-ph="Kontrol…"></div></div>
-          <div class="col"><h5>Uzmandan istenen</h5><div class="sub">Bu geçişte danışmandan ve konu uzmanından ne istenir?</div><div class="bak">Bak: madde 1, 3 ve 4</div><div class="notes" data-min="1" data-ph="Uzman…"></div></div>
+          <div class="col d4"><h5><span class="d4pill">4D</span>Özen</h5><div class="sub">Danışman aradan çıkınca kayıt ve kontrol nerede eksik kalır? Son sorumlu kim olur?</div><div class="bak">Bak: madde 1 ve 3</div><div class="fwd">→ Tur 3 · 1. kutu: riskte değişen</div><div class="notes" data-key="d4t2g1" data-min="1" data-ph="Eksik kalan…"></div></div>
+          <div class="col"><h5>Olmazsa olmaz</h5><div class="sub">Müşteriye açılmadan önce mutlaka yerinde olması gereken tek kontrol hangisi?</div><div class="bak">Bak: madde 2–3</div><div class="fwd">→ Tur 3 · 2. kutu: ölçüt adayınız</div><div class="notes" data-min="1" data-ph="Kontrol…"></div></div>
+          <div class="col"><h5>Uzmandan istenen</h5><div class="sub">Bu geçişte danışmandan ve konu uzmanından ne istenir?</div><div class="bak">Bak: madde 1, 3 ve 4</div><div class="fwd">→ Tur 3 · 2. kutu: ölçütün sahibi</div><div class="notes" data-min="1" data-ph="Uzman…"></div></div>
         </div>
       </div>
       <div class="fac"><span class="tag">Kolaylaştırıcı · beklenen cevaplar · Grup 1</span>
@@ -505,11 +531,11 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
       <p class="muted" style="margin:0 0 10px">Banka içeride yayılımı herkese erişim, görünür deneme ve süper kullanıcılarla sağladı. Aynı motor müşteride işler mi?</p>
       <div class="card" style="margin-bottom:12px"><span class="tag">Vakadan · bilmeniz gereken</span><ol><li>Müşteriler öz-servis istiyor: tam çevrimiçi işlem Mart 2024'te açıldı ve 120.000 müşteri kaynaklı işlem yapıldı.</li><li>Çalışanda yayılımı AI Days, katılımın performansa yazılması ve kullanım istatistikleri sağladı; her ölçekte %30 aktif, %10 süper kullanıcı çıktı.</li><li>Bir yöneticiye göre müşteri aracı danışmanın yerine kullanmaz; müşteri işlem yapınca danışmana uyarı gider.</li><li>Danışmanlar doğru soruyu sormayı yıllar süren usta–çırak eğitimiyle öğreniyor. Coach'ta hazır düğmeler var ve Coach kullanıcıya kendisi de soru sorabiliyor.</li></ol></div>
       <div class="pano" data-pano="p2g2">
-        <div class="pano-head"><h4>Mercek Kartı</h4><span class="hint">Üç soru, her birine bir not. Bilgi yukarıda hazır; sizden istenen yargı.</span><div class="tools"><button class="btn add" type="button">+ Not</button><button class="btn copy" type="button">Kopyala</button></div></div>
+        <div class="pano-head"><h4>Mercek Kartı</h4><span class="hint">Üç soru, her birine bir not. Bilgi yukarıda hazır; sizden istenen yargı. Notlarınız Tur 3'te kanvasa taşınır.</span><div class="tools"><button class="btn add" type="button">+ Not</button><button class="btn copy" type="button">Kopyala</button></div></div>
         <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
-          <div class="col d4"><h5><span class="d4pill">4D</span>Tarif</h5><div class="sub">Müşteri ihtiyacını Coach'a danışman kadar iyi anlatabilir mi? Ne eksik kalır?</div><div class="bak">Bak: madde 4</div><div class="notes" data-key="d4t2g2" data-min="1" data-ph="Eksik kalan…"></div></div>
-          <div class="col"><h5>Küçük adım</h5><div class="sub">Müşteriye açılış hangi küçük adımla başlamalı? Kimlerle?</div><div class="bak">Bak: madde 1–2 ve Bağlam kartı (sesli GenAI)</div><div class="notes" data-min="1" data-ph="İlk adım…"></div></div>
-          <div class="col"><h5>Uzmandan istenen</h5><div class="sub">Bu yayılımda danışman ne yapar?</div><div class="bak">Bak: madde 3–4</div><div class="notes" data-min="1" data-ph="Uzman…"></div></div>
+          <div class="col d4"><h5><span class="d4pill">4D</span>Tarif</h5><div class="sub">Müşteri ihtiyacını Coach'a danışman kadar iyi anlatabilir mi? Ne eksik kalır?</div><div class="bak">Bak: madde 4</div><div class="fwd">→ Tur 3 · 1. kutu: riskte değişen</div><div class="notes" data-key="d4t2g2" data-min="1" data-ph="Eksik kalan…"></div></div>
+          <div class="col"><h5>Küçük adım</h5><div class="sub">Müşteriye açılış hangi küçük adımla başlamalı? Kimlerle?</div><div class="bak">Bak: madde 1–2 ve Bağlam kartı (sesli GenAI)</div><div class="fwd">→ Tur 3 · 1. kutu: yol seçiminiz</div><div class="notes" data-min="1" data-ph="İlk adım…"></div></div>
+          <div class="col"><h5>Uzmandan istenen</h5><div class="sub">Bu yayılımda danışman ne yapar?</div><div class="bak">Bak: madde 3–4</div><div class="fwd">→ Tur 3 · 2. kutu: ölçütün sahibi</div><div class="notes" data-min="1" data-ph="Uzman…"></div></div>
         </div>
       </div>
       <div class="fac"><span class="tag">Kolaylaştırıcı · beklenen cevaplar · Grup 2</span>
@@ -526,11 +552,11 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
       <p class="muted" style="margin:0 0 10px">Banka içeride doğrulamayı uzmanlara okutarak kurdu. Bu düzen danışman içindi; müşteri için ne değişmeli?</p>
       <div class="card" style="margin-bottom:12px"><span class="tag">Vakadan · bilmeniz gereken</span><ol><li>Danışman pilotunda uzmanlar 3.700 yanıtı okudu. Tam sağlam (doğru ve eksiksiz) yanıt %50'den %90'a çıktı; kalanların çoğu "kısmen sağlam" (doğru ama eksik).</li><li>Yanlışların çoğu modelden değil, güncelliğini yitirmiş belgelerden geldi.</li><li>Her yanıtta kaynak var; banka içeriği ile kamu bilgisi ayrı gösteriliyor. Bugün her yanıtı ayrıca danışman kendi bilgisiyle süzüyor.</li></ol></div>
       <div class="pano" data-pano="p2g3">
-        <div class="pano-head"><h4>Mercek Kartı</h4><span class="hint">Üç soru, her birine bir not. Bilgi yukarıda hazır; sizden istenen yargı.</span><div class="tools"><button class="btn add" type="button">+ Not</button><button class="btn copy" type="button">Kopyala</button></div></div>
+        <div class="pano-head"><h4>Mercek Kartı</h4><span class="hint">Üç soru, her birine bir not. Bilgi yukarıda hazır; sizden istenen yargı. Notlarınız Tur 3'te kanvasa taşınır.</span><div class="tools"><button class="btn add" type="button">+ Not</button><button class="btn copy" type="button">Kopyala</button></div></div>
         <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
-          <div class="col d4"><h5><span class="d4pill">4D</span>Ayırt et</h5><div class="sub">Danışmanın yaptığı süzmeyi müşteri yapabilir mi? Yapamazsa kim yapar?</div><div class="bak">Bak: madde 3</div><div class="notes" data-key="d4t2g3" data-min="1" data-ph="Kim ayırt eder…"></div></div>
-          <div class="col"><h5>Eşik</h5><div class="sub">Müşteriye açmak için hangi sağlamlık eşiği gerekir? "Kısmen sağlam" yanıt müşteriye gider mi?</div><div class="bak">Bak: madde 1</div><div class="notes" data-min="1" data-ph="Eşik…"></div></div>
-          <div class="col"><h5>Uzmandan istenen</h5><div class="sub">Konu uzmanı ve danışman bu düzende ne yapar?</div><div class="bak">Bak: madde 2–3</div><div class="notes" data-min="1" data-ph="Uzman…"></div></div>
+          <div class="col d4"><h5><span class="d4pill">4D</span>Ayırt et</h5><div class="sub">Danışmanın yaptığı süzmeyi müşteri yapabilir mi? Yapamazsa kim yapar?</div><div class="bak">Bak: madde 3</div><div class="fwd">→ Tur 3 · 1. kutu: riskte değişen</div><div class="notes" data-key="d4t2g3" data-min="1" data-ph="Kim ayırt eder…"></div></div>
+          <div class="col"><h5>Eşik</h5><div class="sub">Müşteriye açmak için hangi sağlamlık eşiği gerekir? "Kısmen sağlam" yanıt müşteriye gider mi?</div><div class="bak">Bak: madde 1</div><div class="fwd">→ Tur 3 · 2. kutu: ölçüt adayınız</div><div class="notes" data-min="1" data-ph="Eşik…"></div></div>
+          <div class="col"><h5>Uzmandan istenen</h5><div class="sub">Konu uzmanı ve danışman bu düzende ne yapar?</div><div class="bak">Bak: madde 2–3</div><div class="fwd">→ Tur 3 · 2. kutu: ölçütün sahibi</div><div class="notes" data-min="1" data-ph="Uzman…"></div></div>
         </div>
       </div>
       <div class="fac"><span class="tag">Kolaylaştırıcı · beklenen cevaplar · Grup 3</span>
@@ -547,6 +573,7 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
         <li>Gruplar vaka metnini açmaz; "Vakadan · bilmeniz gereken" kartı yeter. Sayfa numarası istemeyin.</li>
         <li>Üç soru için 16 dakika var; soru başına yaklaşık 5 dakika. Grup ilk soruda takılırsa "önce bir cümle yazın, sonra düzeltirsiniz" deyin.</li>
         <li>Dönüşte her grup yalnızca ilk sorusunun (4D) cevabını söyler: 3 × 1'30".</li>
+        <li><b>Tur 3'e köprü:</b> bu turda yol seçilmez; "A mı B mi?" tartışması başlarsa "onu Tur 3'te seçeceksiniz, şimdi merceğinizden ne gördüğünüzü yazın" deyin. Dönüşte üç bulguyu tek cümleyle yüksek sesle özetleyin; Tur 3'te gruplar öteki iki mercekten de ölçüt yazarken buna dayanır.</li>
       </ul>
     </div>
   </section>
@@ -560,43 +587,59 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
     <p class="muted" style="margin:0">Dönüşte doğrudan breakout. Tur 3 ve Tur 4 arka arkaya aynı odada yapılır; arada ana odaya dönülmez.</p>
   </section>
 
-  <!-- 3 HAZIRLIK PLANI -->
+  <!-- 3 KARAR KANVASI -->
   <section class="blok" id="b3">
     <header>
-      <div><div class="num">TUR 3 · DENE · BREAKOUT</div><h2>Hazırlık Planı: "hazırız"ı nasıl anlarız?</h2></div>
+      <div><div class="num">TUR 3 · DENE · BREAKOUT</div><h2>Coach kararı · Kanvas: hangi yol, hangi ölçüt, kim sahip?</h2></div>
       <div class="time"><b>25'</b><span data-slot="4"></span></div>
     </header>
-    <div class="aim">Vakanın sorusu: Coach müşteriye açılacaksa hazır olduğumuzu nasıl anlarız? Bu turda tek bir ortak kart var. "Bugün" kutusu dolu gelir; siz üç kutuyu birer cümleyle doldurur ve grubun önerisini seçersiniz. Tur 2 notlarınız hammaddenizdir.</div>
+    <div class="aim">Tur 2'de kararı merceğinizden okudunuz; şimdi kararı veriyorsunuz. Üç grup aynı kanvası doldurur: Coach müşteriye şimdi mi açılsın, önce sesli ara adım mı, yoksa henüz değil mi? Hazır olduğumuzu hangi üç ölçüt gösterir ve her birinin sahibi kim? Kendi Tur 2 notlarınız ve öteki iki grubun bulguları hammaddenizdir; aşağıdaki kart üç merceği bir araya getirir.</div>
     <div class="steps">
       <div><b>0–2'</b>Kurulum</div>
-      <div><b>2–18'</b>Hazırlık Planı: üç kutu + öneri</div>
-      <div><b>18–22'</b>Şüpheci kontrolü</div>
-      <div><b>22–25'</b>Pay: eksik kutuyu tamamla</div>
+      <div><b>2–7'</b>1 · Yolu seçin</div>
+      <div><b>7–15'</b>2 · Üç hazırlık ölçütü</div>
+      <div><b>15–20'</b>3 · Garanti BBVA'ya köprü</div>
+      <div><b>20–25'</b>Öneri cümlesi + Şüpheci kontrolü</div>
+    </div>
+    <div class="bridge">
+      <div><small>Tur 2 · 1. notunuz</small>Danışman aradan çıkınca ne eksik kalır?<b>→ 1. kutu: riskte ne değişir, hangi yol?</b></div>
+      <div><small>Tur 2 · 2. notunuz</small>Ne gerekli: kontrol, küçük adım ya da eşik?<b>→ 1. kutudaki yol ve 2. kutudaki ölçütler</b></div>
+      <div><small>Tur 2 · 3. notunuz</small>Danışman ve konu uzmanı ne yapar?<b>→ 2. kutu: ölçütün sahibi hangi hat?</b></div>
     </div>
     <div class="card" style="margin-bottom:12px">
-      <span class="tag">Bugün · dolu gelir</span>
-      <p style="margin:8px 0 0">Coach 3.000 danışmanda. En sık kullanım görüşme notu ve takip işleri. Her yanıtta kaynak var; tavsiyenin sorumlusu danışman. Müşteri Coach'u görmüyor. Vakada konuşulan açılış: danışmanın eriştiği ürün ve politika bilgisi ile kaynakların müşteriye de açılması.</p>
+      <span class="tag">Üç mercek bir arada · Tur 2 kartlarının özeti · tüm gruplar</span>
+      <ol>
+        <li><b>Bugün:</b> Coach 3.000 danışmanda; müşteri Coach'u görmüyor. Danışman yanıtı müşteriden önce görüyor, düzeltebiliyor ve verdiği tavsiyeden sorumlu.</li>
+        <li><b>Kontrol merceği</b> (Grup 1 · vaka s. 3–4): iki inceleme yolu var. Müşteri yüzlü kullanım "yüksek riskli" sayılır ve bağımsız model incelemesinden geçer; iç kullanım "düşük riskli" sayılır, sponsor ve kontrol ekibinin değerlendirmesi ile döngüdeki insan yeter.</li>
+        <li><b>Yayılım merceği</b> (Grup 2): müşteriler öz-servis istiyor; tam çevrimiçi işlem Mart 2024'te açıldı ve 120.000 müşteri kaynaklı işlem yapıldı. Müşteri işlem yapınca danışmana uyarı gider. Danışman doğru soruyu sormayı yıllar süren usta–çırak eğitimiyle öğreniyor.</li>
+        <li><b>Doğrulama merceği</b> (Grup 3 · vaka s. 12–13): danışman pilotunda uzmanlar 3.700 yanıtı okudu; tam sağlam (doğru ve eksiksiz) yanıt %50'den %90'a çıktı. Yanlışların çoğu modelden değil, güncelliğini yitirmiş belgelerden geldi.</li>
+        <li><b>Masadaki üç yol:</b> <b>A</b> müşteriye şimdi aç · <b>B</b> önce danışman–müşteri görüşmesinde sesli GenAI ara adımı · <b>C</b> henüz değil, şimdilik danışmanda kalsın. Vakada konuşulan açılış: danışmanın eriştiği ürün ve politika bilgisi ile kaynakların müşteriye de açılması.</li>
+      </ol>
+      <p class="muted" style="margin:10px 0 0;font-size:13px"><b>Üç savunma hattı</b> (bankacılıkta yaygın çerçeve; vakada geçmez): <b>1. hat</b> işi kuran ve işleten birim · <b>2. hat</b> risk gözetimi · <b>3. hat</b> bağımsız denetim.</p>
     </div>
-    <div class="g" data-g="1"><span class="gtag">Grup 1 · Ölçütü Özen'den yazın: hangi kontrol ve kayıt yerinde olmalı?</span></div>
-    <div class="g" data-g="2"><span class="gtag">Grup 2 · Ölçütü Tarif'ten yazın: küçük adımda müşteri ihtiyacını anlatabildi mi?</span></div>
-    <div class="g" data-g="3"><span class="gtag">Grup 3 · Ölçütü Ayırt etme'den yazın: hangi sağlamlık eşiği?</span></div>
     <div class="pano" data-pano="p3c" style="margin-top:6px">
-      <div class="pano-head"><h4>Hazırlık Planı · ortak kart · tüm gruplar</h4><span class="hint">Her kutuya tek cümle. Galeride üç plan yan yana gelir.</span><div class="tools"><button class="btn add" type="button">+ Not</button><button class="btn copy" type="button">Kopyala</button></div></div>
-      <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
-        <div class="col"><h5>Ara adım</h5><div class="sub">Müşteriye açmadan önce hangi küçük adım? Neyi test eder?</div><div class="bak">Bak: Tur 2 Bağlam kartı (sesli GenAI) ve Tur 2 notlarınız</div><div class="notes" data-min="1" data-ph="Ara adım…"></div></div>
-        <div class="col"><h5>Müşteriye açılış</h5><div class="sub">Coach müşteri için ne yapar, ne yapmaz?</div><div class="bak">Bak: "Bugün" kartının son cümlesi</div><div class="notes" data-min="1" data-ph="Yapar / yapmaz…"></div></div>
-        <div class="col d4"><h5><span class="d4pill">4D</span>"Hazırız" ölçütü</h5><div class="sub">Tek ölçüt ve eşik. Kim doğrular?</div><div class="bak">Vakada cevabı yok: grubunuzun ipucu satırı ve Tur 2'deki ilk notunuz</div><div class="notes" data-key="d4t3" data-min="1" data-ph="Ölçüt…"></div></div>
-        <div class="col"><h5>Grubun önerisi</h5><div class="sub">A müşteriye aç · B önce sesli ara adım · C şimdilik danışmanda kalsın. Tek cümle gerekçe.</div><div class="bak">Bak: bu karttaki üç notunuz</div><div class="notes" data-min="1" data-ph="A / B / C, çünkü…"></div></div>
+      <div class="pano-head"><h4>Karar Kanvası · üç grupta aynı</h4><span class="hint">Önce 1. kutudaki A · B · C yollarından birini seçin. Her kutuya 2–3 kısa not: karttan bir bilgi ve kendi görüşünüz.</span><div class="tools"><button class="btn add" type="button">+ Not</button><button class="btn copy" type="button">Kopyala</button></div></div>
+      <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
+        <div class="col kbox"><h5>1 · Yolu seçin</h5><div class="sub" style="min-height:0">Üç yoldan birini seçin:</div><ul class="opts"><li><b>A</b>Müşteriye şimdi aç</li><li><b>B</b>Önce sesli ara adım<span>danışman–müşteri görüşmesinde sesli GenAI</span></li><li><b>C</b>Henüz değil<span>şimdilik danışmanda kalsın</span></li></ul><div class="sub" style="min-height:0">Yanıtı eğitimli bir danışman yerine müşteri okuduğunda riskte ne değişir?</div><div class="bak">Bak: madde 1, 2 ve 5 · Tur 2 kartınızdaki 1. not</div><div class="notes" data-key="t3-yol" data-min="2" data-ph="Yolumuz: A / B / C · riskte değişen…"></div></div>
+        <div class="col kbox"><h5>2 · Üç hazırlık ölçütü</h5><div class="sub">Müşteriye açılmadan önce doğru olması gereken ÜÇ şeyi yazın; her biri ölçülebilir olsun. Her ölçüte bir sahip verin: 1. hat, 2. hat ya da 3. hat. Biri kendi merceğinizden, diğerleri öteki iki mercekten gelebilir.</div><div class="bak">Bak: madde 2, 3 ve 4 ("%50 → %90 tam sağlam" bir ölçüt türüdür) · Tur 2 kartınızdaki 2. ve 3. not</div><div class="notes" data-key="t3-olcut" data-min="3" data-ph="Ölçüt + eşik · sahibi: … hat"></div></div>
+        <div class="col kbox own"><h5>3 · Garanti BBVA'ya köprü</h5><div class="sub">Aynı soruyu Garanti BBVA'da müşteriye dönük bir GenAI asistanı için sorun. Üç ölçütünüzden hangisini burada karşılamak en zor olur, neden?</div><div class="bak">Vakada yok: kendi biriminizden yazın. KVKK ve BDDK'yı düşünün: kişisel veri, açıklanabilirlik, denetim izi. Kişi ve müşteri adı yazmayın.</div><div class="notes" data-key="t3-kopru" data-min="2" data-ph="En zor ölçüt …, çünkü…"></div></div>
+      </div>
+      <div class="col" style="margin-top:14px"><h5>Öneri cümlesi</h5>
+        <div class="band" style="margin:0 0 10px"><small>Kanvası tek cümleye bağlayın</small>"[Yol] öneriyoruz; çünkü [ölçüt] [hat] tarafından sahiplenildiğinde [değer], [risk]ten ağır basar."</div>
+        <div class="notes" data-key="t3-oneri" data-min="1" data-ph="… öneriyoruz; çünkü …"></div>
       </div>
     </div>
-    <div class="card" style="margin-top:14px"><b>Şüpheci kontrolü · 4'.</b> "Bu planda danışmanın ve konu uzmanının yaptığı iş hangisi?" Cevap boşsa plan uzman planı değil, yönetim dilek listesi.</div>
-    <div class="fac"><span class="tag">Kolaylaştırıcı · beklenen cevaplar · ortak plan</span>
+    <div class="card" style="margin-top:14px"><b>Şüpheci kontrolü · 2'.</b> Üç ölçütün her biri ölçülebilir mi ve sahibi yazılı mı? Öneri cümlesindeki yol, ölçüt ve hat kanvastakilerle aynı mı? Biri eksikse plan öneri değil, dilek listesidir.</div>
+    <div class="fac"><span class="tag">Kolaylaştırıcı · beklenen cevaplar · Karar Kanvası</span>
       <ul>
-        <li><b>Ara adım:</b> vakadaki öneri, danışman–müşteri görüşmesinde gerektiğinde bilgi veren sesli Coach. Bunun öz-servise mi yoksa daha etkili danışmana mı götüreceği test edilmemiş.</li>
-        <li><b>Müşteriye açılış:</b> vakada konuşulan şey, Coach'un bugünkü yeteneklerini, yani ürün ve politika bilgisi ile kaynaklara erişimi müşteriye açmak. Müşteri adına işlem yapmak bunun içinde değil.</li>
-        <li><b>Ölçüt:</b> vaka ölçüt vermiyor; sorunun kendisi bu. Örnekler: bağımsız model incelemesinden geçiş (Özen), pilot müşterilerin ihtiyacını tek seferde anlatabilmesi (Tarif), müşteri sorularında tam sağlam oranı (Ayırt etme).</li>
-        <li><b>Öneri:</b> tek doğru yok. Grubun A, B ya da C demesi değil, gerekçesinin Tur 2 notlarına dayanması önemli.</li>
-        <li>Grup aracı yok; tek ortak kart var. 16 dakikada dört not, not başına 4 dakika.</li>
+        <li><b>1 · Yol ve risk:</b> tek doğru yol yok. Riskte değişen: bugün son süzgeç danışman (madde 1); yanıtı müşteri okuyunca bu süzgeç kalkar. Kullanım "yüksek riskli" sınıfa geçer ve bağımsız model incelemesi gerekir (madde 2). Danışmanın tamamladığı "kısmen sağlam" yanıt, müşteride eksik bilgi olur. Zayıf cevap: yolu seçip riskte neyin değiştiğini yazmamak.</li>
+        <li><b>2 · Üç ölçüt (örnek; eşikler vakadan değildir):</b> müşteri sorularında tam sağlam oranı, danışman için ulaşılan %90'ın altında değil · sahibi 1. hat. Müşteri sürümü bağımsız model incelemesinden geçti · sahibi 2. hat. Müşteriye giden yanıtların tamamının kayıtlı olduğu bağımsız denetimle doğrulandı · sahibi 3. hat. Vaka ölçüt vermiyor; hat eşleştirmesi de grubun önerisidir.</li>
+        <li>Zayıf ölçüt işareti: "riskler yönetilince" gibi ölçülemeyen cümle, sahibi olmayan ölçüt, yalnızca "kullanım sayısı". Üç ölçüt de aynı hattaysa "bunu kim bağımsız doğrular?" diye sorun.</li>
+        <li><b>3 · Köprü:</b> cevap vakada yok; grup kendi bilgisinden yazar. İpucu soruları: "Müşteri verisi hangi sistemde işlenir?", "Yanıtın neden öyle çıktığını müşteriye ve denetçiye nasıl açıklarız?", "Kim hangi yanıtı ne zaman gördü; kaydı nerede?" Kişi ve müşteri adı yazılmaz.</li>
+        <li><b>Öneri cümlesi (örnek):</b> "B'yi öneriyoruz; çünkü müşteri sorularındaki tam sağlam oranı 1. hat tarafından sahiplenildiğinde, danışmanın kazandığı zaman müşteriye eksik bilgi gitmesi riskinden ağır basar."</li>
+        <li><b>Tur 2 ile bağ:</b> kanvas üç grupta aynıdır; fark, grupların Tur 2'de baktığı mercekten gelir. Her grubun en az bir ölçütü kendi Tur 2 notundan çıkmalı (Grup 1 kontrol, Grup 2 küçük adımın sonucu, Grup 3 sağlamlık eşiği). Kanvasta Tur 2 notlarıyla çelişen bir yol seçildiyse "Tur 2'de şunu yazmıştınız; ne değişti?" diye sorun.</li>
+        <li>18 dakikada yedi kısa not var. Grup 2. kutuda takılırsa "önce ölçütü yazın, eşiği sonra koyun" deyin.</li>
+        <li>Savunma hatlarını bilmeyen grup için: 1. hat işi yapan birim, 2. hat risk ve uyum gözetimi, 3. hat iç denetim.</li>
       </ul>
     </div>
   </section>
@@ -617,9 +660,9 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
     <div class="pano d4box" data-pano="p4d" style="margin-top:0;margin-bottom:14px">
       <div class="pano-head"><h4><span class="d4pill">4D · ortak D</span>Devret satırı</h4><span class="hint">Üç kısa not. Arka arkaya okuyunca 30 saniyelik açılış cümleniz olur.</span><div class="tools"><button class="btn add" type="button">+ Not</button><button class="btn copy" type="button">Kopyala</button></div></div>
       <div class="cols">
-        <div class="col"><h5>Coach'a devredilen</h5><div class="sub">Müşteri için hangi işi Coach yapar?</div><div class="bak">Bak: Tur 3, "Müşteriye açılış" notunuz</div><div class="notes" data-key="d4t4a" data-min="1" data-ph="Coach şunu yapar…"></div></div>
+        <div class="col"><h5>Coach'a devredilen</h5><div class="sub">Müşteri için hangi işi Coach yapar?</div><div class="bak">Bak: Tur 3 kartı madde 5 ve 1. kutudaki yolunuz</div><div class="notes" data-key="d4t4a" data-min="1" data-ph="Coach şunu yapar…"></div></div>
         <div class="col"><h5>Danışmanda kalan</h5><div class="sub">Neyi danışman doğrular ve üstlenir?</div><div class="bak">Bak: Tur 2, "Uzmandan istenen" notunuz</div><div class="notes" data-key="d4t4b" data-min="1" data-ph="Danışmanda kalan…"></div></div>
-        <div class="col"><h5>Karar kimde</h5><div class="sub">Hangi karar müşteride, hangisi danışmanda, hangisi bankada?</div><div class="bak">Bak: Tur 3, öneri ve ölçüt notlarınız</div><div class="notes" data-key="d4t4c" data-min="1" data-ph="Karar…"></div></div>
+        <div class="col"><h5>Karar kimde</h5><div class="sub">Hangi karar müşteride, hangisi danışmanda, hangisi bankada?</div><div class="bak">Bak: Tur 3, 2. kutudaki ölçütler ve sahipleri</div><div class="notes" data-key="d4t4c" data-min="1" data-ph="Karar…"></div></div>
       </div>
     </div>
     <div class="grid2">
@@ -628,8 +671,8 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
         <p class="muted" style="margin:0 0 8px;font-size:13px">Yeni bir şey yazmayın; önceki turlardan üç başlığı tek nota taşıyın. Cümleleri Sunucu kendi sözleriyle kurar.</p>
         <ul style="margin:0 0 10px;padding-left:18px">
           <li><b>Bugün ne var:</b> Tur 2'den bir bulgu.</li>
-          <li><b>Ne öneriyoruz:</b> Hazırlık Planı'ndaki öneri (A · B · C) ve ilk adım.</li>
-          <li><b>Nasıl anlarız:</b> "Hazırız" ölçütü.</li>
+          <li><b>Ne öneriyoruz:</b> Karar Kanvası'ndaki öneri cümlesi (yol A · B · C).</li>
+          <li><b>Nasıl anlarız:</b> üç hazırlık ölçütü ve sahipleri.</li>
           <li><b>Bitiş:</b> "Doğrulama bende, karar sizde."</li>
         </ul>
         <div class="notes" data-min="1" data-ph="Üç başlık…"></div>
@@ -647,13 +690,13 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
           <span class="gtag">Grup 2 · Karşınızda AWM CEO'su</span>
           <p style="margin:0 0 6px"><b>Tutumu:</b> Bunu ilk yapan öne geçer, takipçi olmak tehlikeli; ama net bir plan görmek ister.</p>
           <ul><li>İlk adım ne, ne zaman, kaç müşteriyle?</li><li>Danışman bu işte ne kazanır, ne kaybeder?</li></ul>
-          <div class="bak" style="margin-top:6px">Sunucu için bak: Tur 3 "Ara adım" notunuz ve Tur 2 kartı madde 3</div>
+          <div class="bak" style="margin-top:6px">Sunucu için bak: Tur 3, 1. kutudaki yolunuz ve Tur 2 kartı madde 3</div>
         </div>
         <div class="g" data-g="3">
           <span class="gtag">Grup 3 · Karşınızda Veri ve Analitik Başkanı</span>
           <p style="margin:0 0 6px"><b>Tutumu:</b> YZ ölçek ve kişiselleştirme sağlar; ama teknoloji henüz müşteri yüzlü kullanıma hazır değil.</p>
           <ul><li>Müşteri yanlış ya da eksik yanıtı nasıl fark edecek?</li><li>"Hazırız" demek için hangi sayıyı göreceğiz?</li></ul>
-          <div class="bak" style="margin-top:6px">Sunucu için bak: Tur 2 kartı madde 1 ve 3; Tur 3 "Hazırız" ölçütü notunuz</div>
+          <div class="bak" style="margin-top:6px">Sunucu için bak: Tur 2 kartı madde 1 ve 3; Tur 3, 2. kutudaki ölçütleriniz</div>
         </div>
         <div class="pano" data-pano="p4s">
           <div class="pano-head"><h4>Gözlemci notu</h4></div>
@@ -684,7 +727,7 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
       <div><b>0–9'</b>3 × (2' sunum + 1' soru)</div>
       <div><b>9–12'</b>Karar oyu: A · B · C</div>
     </div>
-    <div class="pano d4box" data-pano="p5k" style="margin-top:0">
+    <div class="pano d4box" data-pano="p5k" data-scope="ortak" style="margin-top:0">
       <div class="pano-head"><h4>Karar oyu: Coach müşteriye açılsın mı?</h4><span class="hint">Herkes tek oy. Sayıyı ve bir cümlelik gerekçeyi yazın; kapanışta bu oya döneceğiz.</span><div class="tools"><button class="btn add" type="button">+ Not</button><button class="btn copy" type="button">Kopyala</button></div></div>
       <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
         <div class="col"><h5>A · Müşteriye aç</h5><div class="notes" data-key="kv-a" data-min="1" data-ph="Oy sayısı / gerekçe"></div></div>
@@ -697,7 +740,7 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
         <li>Sunumlarda aranan cümle: "Coach şunu yapar, danışmanda şu kalır, karar şurada." En büyük vaat değil, en net cümle.</li>
         <li>Üç gruba üç farklı soru sorun; Etik sorusunu yalnızca Grup 3'e bırakmayın.</li>
         <li>Grup oylaması yok; tek oylama kararın kendisi. Oyu sohbet kutusunda harfle toplayıp sayıları panoya yazabilirsiniz.</li>
-        <li>Kapanışa köprü: "Üç mercek üç planda birleşti: kayıtlı (Özen), yayılan (Tarif), doğrulanan (Ayırt etme). Dördüncü D, Devret, komiteye söylediğiniz cümleydi. Karar oyunuzu aklınızda tutun; kapanışta ona döneceğiz."</li>
+        <li>Kapanışa köprü: "Üç mercek aynı kanvasta birleşti: kayıtlı (Özen), yayılan (Tarif), doğrulanan (Ayırt etme). Dördüncü D, Devret, komiteye söylediğiniz cümleydi. Karar oyunuzu aklınızda tutun; kapanışta ona döneceğiz."</li>
       </ul>
     </div>
   </section>
@@ -709,7 +752,7 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
       <div class="time"><b>13'</b><span data-slot="7"></span></div>
     </header>
     <div class="quote">"İşinizi YZ almayacak; YZ'de ustalaşan biri alacak."<small>Varlık ve Servet Yönetimi CEO'su, vaka içinden</small></div>
-    <div class="pano d4box" data-pano="p6d" style="margin-bottom:14px">
+    <div class="pano d4box" data-pano="p6d" data-scope="ortak" style="margin-bottom:14px">
       <div class="pano-head"><h4><span class="d4pill">4D · ortak soru</span>Coach müşteriye açılırsa hangi D ilk kırılır?</h4><span class="hint">Her grup kendi D'si adına 30 saniye. Tek doğru cevap yok. Bak: Tur 2 kartındaki ilk notunuz.</span><div class="tools"><button class="btn add" type="button">+ Not</button><button class="btn copy" type="button">Kopyala</button></div></div>
       <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
         <div class="col"><h5>Grup 1 · Özen</h5><div class="notes" data-key="d4k1" data-min="1" data-ph="Kırılır / dayanır, çünkü…"></div></div>
@@ -752,7 +795,7 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
           <li><b>30 gün içinde</b> hangi görünür adım? Tarih?</li>
           <li><b>Kime</b> göstereceğim; yöneticimle hangi gün konuşacağım?</li>
         </ul>
-        <div class="pano" data-pano="p6">
+        <div class="pano" data-pano="p6" data-scope="kisisel">
           <div class="notes" data-min="1" data-ph="Benim cümlem (yalnızca ben görürüm)…"></div>
         </div>
       </div>
@@ -764,7 +807,7 @@ footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid va
         <li><b>Önerilen 13':</b> 4D ortak soru 3' · "Bir yıl sonra" 3' · eve giden üç şey 1' · kişisel taahhüt 4' · son söz 1' · 1' pay.</li>
         <li><b>"Hangi D ilk kırılır?"</b> sorusunda tek doğru yok. Beklenen: müşteri uzman değil, Ayırt etme zayıflar; sorumluluğun kimde olduğu belirsizleşir, Özen zayıflar; müşteri ihtiyacını iyi anlatamaz, Tarif zayıflar. Hepsinin altında Devret kararı var: banka neyi müşteriye bırakabilir?</li>
         <li>"Bir yıl sonra" kartı yalnızca kolaylaştırıcı modunda görünür; grupların cevabından sonra ekran paylaşarak gösterin. Kaynak bir ödül değerlendirme yazısıdır, bağımsız denetim değildir; "doğru cevap" olarak değil, bankanın bugünkü tercihi olarak sunun.</li>
-        <li>Çıktıları (üç Hazırlık Planı ve karar oyu) katılımcılara göndereceksen "Kopyala" ile metni alın; isim kullanmayın.</li>
+        <li>Çıktıları (üç Karar Kanvası ve karar oyu) katılımcılara göndereceksen "Kopyala" ile metni alın; isim kullanmayın.</li>
       </ul>
     </div>
   </section>
@@ -2009,27 +2052,43 @@ değildir.</p>
 
   <footer>
     Kaynaklar: Bojinov, Lakhani &amp; Lane, "JPMorganChase: Leadership in the Age of GenAI", Harvard Business School Case 9-325-066, rev. 28 Nisan 2025 · McKinsey, "The state of AI in 2026: On the road to ROI", Ağustos 2026 · Cerf, AI Transformation Scorecard (Columbia), uyarlama · Program araçları: 3 dakikalık öneri, Beş Kapı (Geleceği Keşfet Gün 2) · 4D: Delegation · Description · Discernment · Diligence; Türkçe karşılıklar (Devret · Tarif et · Ayırt et · Özen göster) program uyarlamasıdır · Euromoney, "The world's best for digital solutions 2026: JPMorgan Private Bank", 20 Mart 2026.<br>
-    Geleceği Keşfet · Case Lab — JPMorganChase | Kampüs Garanti BBVA × MCT. Şablon rehberlik eder, cevap vermez. Notlar yalnızca bu tarayıcıda saklanır.
+    Geleceği Keşfet · Case Lab — JPMorganChase | Kampüs Garanti BBVA × MCT. Şablon rehberlik eder, cevap vermez. <span id="storeNote">Notlar yalnızca bu tarayıcıda saklanır.</span>
   </footer>
 </div>
 
 <script>
 (function(){
-  var KEY='kesfet-caselab-v4';
+  /* ============================================================
+     CANLI PAYLAŞIM AYARI
+     Firebase Realtime Database adresinizi tırnakların arasına yazın.
+     Örnek: 'https://caselab-xxxx-default-rtdb.europe-west1.firebasedatabase.app'
+     Boş bırakılırsa pano eskisi gibi çalışır: notlar yalnızca o tarayıcıda kalır.
+     ============================================================ */
+  var SYNC_URL='https://kesfet-caselab-default-rtdb.europe-west1.firebasedatabase.app';
+
+  var KEY='kesfet-caselab-v5';
   var store={};
   try{ store=JSON.parse(localStorage.getItem(KEY)||'{}')||{}; }catch(e){ store={}; }
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} }
+  function each(list,fn){ Array.prototype.forEach.call(list,fn); }
+
+  // Oturum: bağlantıdaki ?oturum=... kodu. Aynı kodu açan herkes aynı panoyu görür.
+  var SYNC=/^https?:\/\/[^\/]+/.test(SYNC_URL||'');
+  var ROOM=(function(){ var m=/[?&]oturum=([^&#]*)/.exec(location.search); var r=''; try{ r=m?decodeURIComponent(m[1]):''; }catch(e){}
+    r=r.toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40); return r||'genel'; })();
+  var ROOT=SYNC?SYNC_URL.replace(/\/+$/,'')+'/caselab/'+ROOM:'';
+  var ready=false;
 
   // Grup seçimi
-  function setG(g){ document.body.setAttribute('data-g',g); Array.prototype.forEach.call(document.querySelectorAll('.gsel .btn'),function(b){ b.classList.toggle('on',b.getAttribute('data-g')===String(g)); }); store.__g=g; save(); }
-  Array.prototype.forEach.call(document.querySelectorAll('.gsel .btn'),function(b){ b.addEventListener('click',function(){ setG(b.getAttribute('data-g')); }); });
-  Array.prototype.forEach.call(document.querySelectorAll('.gcard'),function(c){ var f=function(){ setG(c.getAttribute('data-g')); document.getElementById('b1').scrollIntoView({behavior:'smooth'}); }; c.addEventListener('click',f); c.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){e.preventDefault();f();} }); });
+  function setG(g){ document.body.setAttribute('data-g',g); each(document.querySelectorAll('.gsel .btn'),function(b){ b.classList.toggle('on',b.getAttribute('data-g')===String(g)); }); store.__g=g; save(); if(ready&&SYNC) reconcileAll(); }
+  each(document.querySelectorAll('.gsel .btn'),function(b){ b.addEventListener('click',function(){ setG(b.getAttribute('data-g')); }); });
+  each(document.querySelectorAll('.gcard'),function(c){ var f=function(){ setG(c.getAttribute('data-g')); document.getElementById('b1').scrollIntoView({behavior:'smooth'}); }; c.addEventListener('click',f); c.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){e.preventDefault();f();} }); });
   setG(store.__g||'1');
 
   // Zaman çizelgesi
   var slots=[
-    {t:'Açılış',d:10,h:'#b0'},{t:'Tur 1 · Vaka keşfi',d:30,h:'#b1'},{t:'Tur 2 · Coach kararı',d:25,h:'#b2'},
-    {t:'Ara',d:10,h:'#ara',ara:true},{t:'Tur 3 · Hazırlık Planı',d:25,h:'#b3'},{t:'Tur 4 · Komiteye 3 dk',d:25,h:'#b4'},
+    {t:'Açılış',d:10,h:'#b0'},{t:'Tur 1 · Vaka keşfi',d:30,h:'#b1'},{t:'Tur 2 · Coach kararı: mercek',d:25,h:'#b2'},
+    {t:'Ara',d:10,h:'#ara',ara:true},{t:'Tur 3 · Coach kararı: kanvas',d:25,h:'#b3'},{t:'Tur 4 · Komiteye 3 dk',d:25,h:'#b4'},
     {t:'Galeri & Karar',d:12,h:'#b5'},{t:'Kapanış',d:13,h:'#b6'}
   ];
   var tl=document.getElementById('timeline');
@@ -2046,41 +2105,207 @@ değildir.</p>
   }
   render();
 
-  // Notlar
-  function textOf(n){ var c=n.cloneNode(true); var x=c.querySelector('.x'); if(x) x.remove(); return c.textContent; }
-  function mkNote(grid,id,text){
-    var n=document.createElement('div'); n.className='note'; n.contentEditable='true'; n.setAttribute('data-ph',grid.getAttribute('data-ph')||'Not…'); n.dataset.id=id; n.textContent=text||'';
-    var x=document.createElement('button'); x.type='button'; x.className='x'; x.title='Sil'; x.textContent='×'; x.contentEditable='false';
-    x.addEventListener('click',function(){ delete store[id]; save(); n.remove(); });
-    n.appendChild(x);
-    n.addEventListener('input',function(){ store[id]=textOf(n); save(); });
-    grid.appendChild(n); return n;
+  /* ---------- Notlar ----------
+     Kapsam (pano üzerindeki data-scope ile):
+       ortak   → oturumdaki herkes aynı notları görür (oylama panosu)
+       kisisel → yalnızca bu tarayıcıda kalır, paylaşılmaz
+       (yok)   → grubun notu: grup bloğunun içindeyse o grup, ortak formattaysa seçili grup */
+  var CID=store.__cid||(store.__cid='c'+Math.random().toString(36).slice(2,10)); save();
+  var grids=[], tree={}, local={}, dseq=0, nseq=0;
+
+  function textOf(n){ var t=n.querySelector('.nt'); if(!t) return ''; var s=(t.offsetParent!==null&&typeof t.innerText==='string')?t.innerText:t.textContent; return s.replace(/\n+$/,''); }
+  function scopeOf(g){
+    var p=g.closest('[data-scope]'), s=p?p.getAttribute('data-scope'):'';
+    if(s==='kisisel') return null;
+    if(s==='ortak') return 'ortak';
+    var w=g.closest('.g[data-g]'); return 'g'+(w?w.getAttribute('data-g'):(document.body.getAttribute('data-g')||'1'));
   }
-  var gi=0;
-  Array.prototype.forEach.call(document.querySelectorAll('.notes'),function(g){
-    var pano=g.closest('[data-pano]'); var key=g.getAttribute('data-key'); var base=key?key:((pano?pano.getAttribute('data-pano'):'x')+'-'+(gi++)); /* data-key: 4D not alanları mevcut notların sırasını kaydırmaz */
-    g.dataset.base=base;
-    var min=+(g.getAttribute('data-min')||1); var ids=Object.keys(store).filter(function(k){return k.indexOf(base+'-')===0}).sort();
+  function isLocal(g){ return !SYNC||scopeOf(g)===null; }
+  function newId(){ return 'n'+Date.now().toString(36)+(1000+(nseq++)%9000)+Math.random().toString(36).slice(2,6); }
+  function isNote(d){ return !!d&&typeof d==='object'&&typeof d.t==='string'&&d.t!==''; }
+
+  function mkNote(grid,id,text,before){
+    var n=document.createElement('div'); n.className='note'; n.dataset.id=id;
+    var t=document.createElement('div'); t.className='nt'; t.contentEditable='true'; t.setAttribute('role','textbox'); t.setAttribute('aria-multiline','true'); t.setAttribute('data-ph',grid.getAttribute('data-ph')||'Not…'); t.textContent=text||'';
+    var x=document.createElement('button'); x.type='button'; x.className='x'; x.title='Sil'; x.setAttribute('aria-label','Notu sil'); x.textContent='×';
+    x.addEventListener('click',function(){
+      if(isLocal(grid)){ delete store[n.dataset.id]; save(); n.remove(); return; }
+      if(n.dataset.sync) put(scopeOf(grid),grid.dataset.base,n.dataset.id,null);
+      n.remove(); schedule();
+    });
+    t.addEventListener('input',function(){
+      var txt=textOf(n);
+      if(isLocal(grid)){ store[n.dataset.id]=txt; save(); return; }
+      var sc=scopeOf(grid), base=grid.dataset.base;
+      if(!txt.trim()){ if(n.dataset.sync){ put(sc,base,n.dataset.id,null); delete n.dataset.sync; } return; }
+      if(!n.dataset.sync){ n.dataset.id=newId(); n.dataset.sync='1'; }
+      n._t=txt.slice(0,4000);
+      put(sc,base,n.dataset.id,{t:n._t,u:Date.now(),by:CID});
+    });
+    t.addEventListener('blur',function(){ if(!t.textContent) t.innerHTML=''; if(!isLocal(grid)){ flushSoon(0); schedule(); } });
+    n.appendChild(t); n.appendChild(x);
+    if(before) grid.insertBefore(n,before); else grid.appendChild(n);
+    return n;
+  }
+  function fillLocal(g){
+    var base=g.dataset.base, min=+(g.getAttribute('data-min')||1);
+    var ids=Object.keys(store).filter(function(k){return k.indexOf(base+'-')===0}).sort();
     if(ids.length){ ids.forEach(function(id){ mkNote(g,id,store[id]); }); }
     else{ for(var i=0;i<min;i++) mkNote(g,base+'-'+Date.now()+'-'+i,''); }
+  }
+
+  // --- Ortak depo: ağaç = {kapsam:{pano:{notId:{t,u,by}}}} ---
+  function keys(path){ return String(path||'').split('/').filter(Boolean); }
+  function getPath(path){ var k=keys(path), o=tree; for(var i=0;i<k.length;i++){ if(!o||typeof o!=='object') return undefined; o=o[k[i]]; } return o; }
+  function setPath(path,val){
+    var k=keys(path); if(!k.length){ tree=(val&&typeof val==='object')?val:{}; return; }
+    var o=tree; for(var i=0;i<k.length-1;i++){ if(!o[k[i]]||typeof o[k[i]]!=='object') o[k[i]]={}; o=o[k[i]]; }
+    if(val===null||val===undefined) delete o[k[k.length-1]]; else o[k[k.length-1]]=val;
+  }
+  function put(sc,base,id,val){
+    var path=sc+'/'+base+'/'+id; setPath(path,val);
+    var e=local[path]||(local[path]={}); e.v=val; e.u=val?val.u:Date.now(); e.p=true;
+    persistOut(); flushSoon(350);
+  }
+  // Kendi yazdığım ama henüz sunucuya ulaşmamış (ya da eski yankısı dönen) notlar ağacın üstüne bindirilir.
+  function overlay(){
+    Object.keys(local).forEach(function(p){ var e=local[p], cur=getPath(p);
+      if(e.p) setPath(p,e.v);
+      else if(cur&&cur.by===CID&&cur.u<e.u) setPath(p,e.v);
+    });
+  }
+  var OUT=KEY+'-out-'+ROOM;
+  function persistOut(){ try{ var o={}; Object.keys(local).forEach(function(p){ if(local[p].p) o[p]={v:local[p].v,u:local[p].u}; }); localStorage.setItem(OUT,JSON.stringify(o)); }catch(e){} }
+  function loadOut(){ try{ var o=JSON.parse(localStorage.getItem(OUT)||'{}')||{}; Object.keys(o).forEach(function(p){ local[p]={v:o[p].v,u:o[p].u,p:true}; }); }catch(e){} }
+
+  // --- Yazma: önce PUT/DELETE; ağ bunları engelliyorsa POST + yöntem parametresi ---
+  var override=false, writeOk=true, lastAck=0, flushTimer=null;
+  function send(path,val){
+    var url=ROOT+(path?'/'+path:'')+'.json', del=(val===null||val===undefined), body=del?null:JSON.stringify(val);
+    function go(ov){
+      var o=ov?{method:'POST',body:body||''}:{method:del?'DELETE':'PUT'}; if(!ov&&!del) o.body=body;
+      return fetch(ov?url+'?x-http-method-override='+(del?'DELETE':'PUT'):url,o).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); });
+    }
+    return go(override).catch(function(){ return go(!override).then(function(){ override=!override; }); });
+  }
+  function flushSoon(ms){ clearTimeout(flushTimer); flushTimer=setTimeout(flush,ms); }
+  function flush(){
+    Object.keys(local).forEach(function(p){ var e=local[p]; if(!e.p||e.busy) return; e.busy=true; var u=e.u;
+      send(p,e.v).then(function(){ e.busy=false; lastAck=Date.now(); writeOk=true; if(e.u===u){ e.p=false; persistOut(); } else flushSoon(0); status(); },
+                       function(){ e.busy=false; writeOk=false; status(); flushSoon(4000); });
+    });
+  }
+  function pendingCount(){ return Object.keys(local).filter(function(p){return local[p].p}).length; }
+
+  // --- Okuma: canlı akış (EventSource); açılamazsa 4 sn'de bir yoklama ---
+  var es=null, live=false, pollOk=false, pollTimer=null, denied=false, firstData=false;
+  function onRemote(kind,msg){
+    if(!msg||typeof msg.path!=='string') return;
+    if(kind==='put') setPath(msg.path,msg.data);
+    else if(msg.data&&typeof msg.data==='object') Object.keys(msg.data).forEach(function(k){ setPath(msg.path+'/'+k,msg.data[k]); });
+    overlay(); schedule();
+  }
+  function connect(){
+    if(!window.EventSource){ startPoll(); return; }
+    try{ es=new EventSource(ROOT+'.json'); }catch(e){ es=null; startPoll(); return; }
+    var mine=es;
+    es.addEventListener('put',function(ev){ live=true; denied=false; firstData=true; stopPoll(); try{ onRemote('put',JSON.parse(ev.data)); }catch(e){} status(); flushSoon(0); });
+    es.addEventListener('patch',function(ev){ try{ onRemote('patch',JSON.parse(ev.data)); }catch(e){} });
+    es.addEventListener('cancel',function(){ denied=true; live=false; status(); });
+    es.addEventListener('auth_revoked',function(){ denied=true; live=false; status(); });
+    es.onerror=function(){ live=false; status(); if(mine.readyState===2){ if(es===mine) es=null; setTimeout(function(){ if(!es) connect(); },5000); } setTimeout(function(){ if(!live) startPoll(); },6000); };
+    setTimeout(function(){ if(!live) startPoll(); },8000);
+  }
+  function startPoll(){ if(pollTimer) return; poll(); pollTimer=setInterval(poll,4000); }
+  function stopPoll(){ if(pollTimer){ clearInterval(pollTimer); pollTimer=null; } pollOk=false; }
+  function poll(){
+    if(live) return; var t0=Date.now();
+    fetch(ROOT+'.json',{cache:'no-store'}).then(function(r){ if(!r.ok){ if(r.status===401||r.status===403) denied=true; throw new Error('HTTP '+r.status); } return r.json(); })
+      .then(function(d){ if(live) return; pollOk=true; denied=false; firstData=true;
+        if(lastAck<t0){ tree=(d&&typeof d==='object')?d:{}; overlay(); schedule(); }
+        status(); flushSoon(0); })
+      .catch(function(){ pollOk=false; status(); });
+  }
+
+  // --- Ekranı ağaçla eşitle ---
+  var raf=0;
+  function schedule(){ if(raf) return; raf=(window.requestAnimationFrame||setTimeout)(function(){ raf=0; reconcileAll(); },16); }
+  function reconcileAll(){ grids.forEach(reconcile); }
+  function reconcile(g){
+    var sc=scopeOf(g); if(sc===null) return;
+    var data=(tree[sc]&&tree[sc][g.dataset.base])||{}, act=document.activeElement, have={};
+    each(Array.prototype.slice.call(g.children),function(n){
+      if(!n.dataset.sync) return;
+      var d=data[n.dataset.id], foc=n.contains(act);
+      if(!isNote(d)){ if(foc) have[n.dataset.id]=1; else n.remove(); return; }
+      have[n.dataset.id]=1;
+      if(!foc&&n._t!==d.t){ n.querySelector('.nt').textContent=d.t; n._t=d.t; }
+    });
+    function firstDraft(){ for(var i=0;i<g.children.length;i++){ if(!g.children[i].dataset.sync) return g.children[i]; } return null; }
+    Object.keys(data).sort().forEach(function(id){ var d=data[id]; if(!isNote(d)||have[id]) return; var n=mkNote(g,id,d.t,firstDraft()); n.dataset.sync='1'; n._t=d.t; });
+    // Boş "buraya yazın" kutuları: her sütunda en az bir tane (data-min="0" olanlarda yalnızca + Not ile)
+    var min=+(g.getAttribute('data-min')||1), nsync=0, drafts=[];
+    each(g.children,function(n){ if(n.dataset.sync) nsync++; else drafts.push(n); });
+    var want=min===0?0:Math.max(1,min-nsync), cnt=drafts.length;
+    var idle=drafts.filter(function(n){ return !n.contains(act)&&!textOf(n).trim(); });
+    while(cnt>want&&idle.length){ idle.pop().remove(); cnt--; }
+    while(cnt<want){ mkNote(g,'d'+(++dseq),''); cnt++; }
+    var seen=false, mixed=false; each(g.children,function(n){ if(!n.dataset.sync) seen=true; else if(seen) mixed=true; });
+    if(mixed) each(Array.prototype.slice.call(g.children),function(n){ if(!n.dataset.sync&&!n.contains(act)) g.appendChild(n); });
+  }
+
+  // --- Durum göstergesi ---
+  var pill=document.getElementById('syncPill'), storeNote=document.getElementById('storeNote');
+  function status(){
+    if(!pill) return; var ok=(live||pollOk), cls, txt;
+    if(denied){ cls='off'; txt='Paylaşım kapalı: veritabanı erişime izin vermiyor'; }
+    else if(ok&&writeOk){ cls='ok'; txt='Canlı · oturum: '+ROOM; }
+    else if(ok){ cls='wait'; txt='Kaydedilemedi, yeniden deneniyor…'; }
+    else if(!firstData){ cls='wait'; txt='Bağlanıyor…'; }
+    else{ cls='off'; txt='Bağlantı koptu · yazdıklarınız bu cihazda bekliyor'; }
+    pill.className='syncpill '+cls; pill.textContent=txt;
+    pill.title=ok?'Yazdıklarınızı gruptaki herkes anında görür. Bekleyen: '+pendingCount():'Bağlantı gelince notlar kendiliğinden gönderilir.';
+  }
+
+  // --- Kurulum ---
+  var gi=0;
+  each(document.querySelectorAll('.notes'),function(g){
+    var pano=g.closest('[data-pano]'); var key=g.getAttribute('data-key'); g.dataset.base=key?key:((pano?pano.getAttribute('data-pano'):'x')+'-'+(gi++)); /* data-key: 4D not alanları mevcut notların sırasını kaydırmaz */
+    grids.push(g);
+    if(isLocal(g)) fillLocal(g);
   });
-  Array.prototype.forEach.call(document.querySelectorAll('.btn.add'),function(b){
+  if(SYNC){
+    document.body.classList.add('livesync');
+    if(storeNote) storeNote.textContent='Grup notları bu oturumdaki herkesle canlı paylaşılır; "yalnızca ben görürüm" alanı bu tarayıcıda kalır.';
+    loadOut(); overlay(); reconcileAll(); status(); connect();
+    window.addEventListener('online',function(){ flushSoon(0); if(!live&&!es) connect(); });
+    window.addEventListener('pagehide',function(){
+      Object.keys(local).forEach(function(p){ var e=local[p]; if(!e.p||e.busy||!navigator.sendBeacon) return;
+        try{ navigator.sendBeacon(ROOT+'/'+p+'.json?x-http-method-override='+(e.v===null?'DELETE':'PUT'), e.v===null?'':JSON.stringify(e.v)); }catch(err){} });
+    });
+  }
+  ready=true;
+
+  var lastGrid=null;
+  document.addEventListener('focusin',function(e){ var g=e.target&&e.target.closest?e.target.closest('.notes'):null; if(g) lastGrid=g; });
+  each(document.querySelectorAll('.btn.add'),function(b){
     b.addEventListener('click',function(){
       var tgt=b.getAttribute('data-target'); var c=tgt?document.querySelector('[data-pano="'+tgt+'"]'):b.closest('[data-pano]');
       if(!c) return;
       var focused=document.activeElement&&document.activeElement.closest?document.activeElement.closest('.notes'):null;
+      if(!focused&&lastGrid&&c.contains(lastGrid)) focused=lastGrid;
       var g=(focused&&c.contains(focused))?focused:c.querySelector('.notes'); if(!g) return;
-      var n=mkNote(g,g.dataset.base+'-'+Date.now(),''); n.focus();
+      var n=mkNote(g,isLocal(g)?g.dataset.base+'-'+Date.now():'d'+(++dseq),''); n.querySelector('.nt').focus();
     });
   });
-  Array.prototype.forEach.call(document.querySelectorAll('.btn.copy'),function(b){
+  each(document.querySelectorAll('.btn.copy'),function(b){
     b.addEventListener('click',function(){
       var c=b.closest('[data-pano]'); var out=[];
       var title=c.querySelector('h4'); if(title) out.push(title.textContent.toUpperCase());
-      Array.prototype.forEach.call(c.querySelectorAll('.col, .cell, .notes'),function(col){
+      each(c.querySelectorAll('.col, .cell, .notes'),function(col){
         if(col.classList.contains('notes')&&col.closest('.col, .cell')) return;
         var h=col.querySelector('h5'); if(h) out.push('\n'+h.textContent);
-        Array.prototype.forEach.call(col.querySelectorAll('.note'),function(n){ var t=textOf(n).trim(); if(t) out.push('• '+t); });
+        each(col.querySelectorAll('.note'),function(n){ var t=textOf(n).trim(); if(t) out.push('• '+t); });
       });
       var txt=out.join('\n'); var old=b.textContent;
       function done(ok){ b.textContent=ok?'Kopyalandı':'Kopyalanamadı'; setTimeout(function(){b.textContent=old},1500); }
@@ -2110,20 +2335,21 @@ değildir.</p>
   document.getElementById('facPwCancel').addEventListener('click',function(){ hidePw(); fb.focus(); });
   setFac(store.__facU===FAC_HASH);
 
-  // Temizle (iki tıkla onay)
+  // Temizle (iki tıkla onay). Canlı paylaşımda yalnızca kolaylaştırıcı modunda görünür ve oturumdaki TÜM grupların notlarını siler.
   var cb=document.getElementById('clearBtn'), armed=false, timer;
   cb.addEventListener('click',function(){
-    if(!armed){ armed=true; cb.textContent='Emin misiniz? Tekrar tıklayın'; timer=setTimeout(function(){armed=false; cb.textContent='Panoyu temizle'},3000); return; }
-    clearTimeout(timer); store={__facU:store.__facU,__g:store.__g}; save();
-    Array.prototype.forEach.call(document.querySelectorAll('.notes'),function(g){ g.innerHTML=''; var min=+(g.getAttribute('data-min')||1); for(var i=0;i<min;i++) mkNote(g,g.dataset.base+'-'+Date.now()+'-'+i,''); });
+    if(!armed){ armed=true; cb.textContent=SYNC?'Tüm grupların notları silinecek. Emin misiniz? Tekrar tıklayın':'Emin misiniz? Tekrar tıklayın'; timer=setTimeout(function(){armed=false; cb.textContent='Panoyu temizle'},SYNC?5000:3000); return; }
+    clearTimeout(timer); store={__facU:store.__facU,__g:store.__g,__cid:store.__cid}; save();
+    grids.forEach(function(g){ g.innerHTML=''; if(isLocal(g)){ var min=+(g.getAttribute('data-min')||1); for(var i=0;i<min;i++) mkNote(g,g.dataset.base+'-'+Date.now()+'-'+i,''); } });
+    if(SYNC){ local={}; tree={}; persistOut(); reconcileAll(); send('',null).then(function(){ lastAck=Date.now(); writeOk=true; status(); },function(){ writeOk=false; status(); }); }
     armed=false; cb.textContent='Panoyu temizle';
   });
 
   // Rehber içi gezinme
   var rn=document.getElementById('rnav'); var hs=document.querySelectorAll('.rbody h3');
-  Array.prototype.forEach.call(hs,function(h,i){ h.id='r'+(i+1); var a=document.createElement('a'); a.href='#r'+(i+1); a.textContent=h.textContent.replace(/\s*\(s\..*\)$/,''); rn.appendChild(a); });
+  each(hs,function(h,i){ h.id='r'+(i+1); var a=document.createElement('a'); a.href='#r'+(i+1); a.textContent=h.textContent.replace(/\s*\(s\..*\)$/,''); rn.appendChild(a); });
   if(location.hash==='#rehber'||/^#r\d+$/.test(location.hash)){ document.getElementById('rehber').open=true; }
-  Array.prototype.forEach.call(document.querySelectorAll('a[href="#rehber"]'),function(a){ a.addEventListener('click',function(){ document.getElementById('rehber').open=true; }); });
+  each(document.querySelectorAll('a[href="#rehber"]'),function(a){ a.addEventListener('click',function(){ document.getElementById('rehber').open=true; }); });
 })();
 </script>
 
